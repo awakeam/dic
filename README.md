@@ -1,2 +1,2 @@
 # dic
-A dictionary tools for bash shell
+A dictionary tools for terminal.
