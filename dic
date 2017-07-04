@@ -1,0 +1,77 @@
+#!/usr/bin/env python
+#-*- coding:utf-8 -*-
+
+from bs4 import BeautifulSoup
+import urllib2
+import sys, commands
+
+def main():
+    if len(sys.argv) > 1:
+        dic(sys.argv[1])
+    else:
+        while(True):
+            w = raw_input(">>>")
+            if w != 'exit':
+                dic(w)
+            else:
+                sys.exit()
+
+def dic(w):
+    url = 'http://dict.kekenet.com/en/'+w
+    req = urllib2.Request(urllib2.unquote(url), headers = {
+        'Connection': 'Keep-Alive',
+        'Accept': 'text/html, application/xhtml+xml, */*',
+        'Accept-Language': 'en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko'
+    })
+    try:
+        html = urllib2.urlopen(req)
+    except urllib2.HTTPError as e:
+        print e,'\n'
+
+    try:
+        bs = BeautifulSoup(html.read(),"lxml")
+    except AttributeError as e:
+        print e,'\n'
+
+    try:
+        phn = bs.find("span", class_="phn").get_text()
+        sentence = bs.find("ul", id="s_ul").get_text()
+        wordm = bs.find("div", id="wordm").strings
+        mean = ''
+        for l in wordm:
+            mean += l.strip() + "\n"
+
+        print mean
+
+        # cur_day = commands.getstatusoutput('date "+%Y-%m-%d"')[1]
+        # last_one = commands.getstatusoutput('ls files/newword | tail -n 1')[1]
+        # if cur_day == last_one:
+        #     f = open("files/newword/"+last_one, 'a+')
+        #     f.write(w.encode('utf-8'))
+        #     f.write("\t\t")
+        #     f.write(phn.encode('utf-8'))
+        #     f.write('\n--------------------------------\n')
+        #     # f.write("\n")
+        #     f.write(mean.encode('utf-8'))            
+        #     f.write(sentence.encode('utf-8'))            
+        #     f.write("\n\n")
+        #     f.close()
+        # else:
+        #     f = open("files/newword/"+cur_day, 'w+')
+        #     f.write(w.encode('utf-8'))
+        #     f.write("\t\t")
+        #     f.write(phn.encode('utf-8'))
+        #     f.write('\n--------------------------------\n')
+        #     # f.write("\n")
+        #     f.write(mean.encode('utf-8'))            
+        #     f.write(sentence.encode('utf-8'))            
+        #     f.write("\n\n")
+        #     f.close()
+        
+
+    except Exception as e:
+        print e,'\n'
+
+if __name__ == "__main__":
+    main()
