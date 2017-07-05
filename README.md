@@ -12,13 +12,13 @@ A dictionary tools for bash shell.
 
 `$dic hello`
 
-![image](https://github.com/awakeam/dic/blob/master/images/show1.png')
+![screenshot](images/show1.png')
 
 **后接多个单词**
 
 `$dic hello world more`
 
-![image](https://github.com/awakeam/dic/blob/master/images/show2.png')
+![screenshot](images/show2.png')
 
 **无限模式**
 
@@ -30,10 +30,10 @@ $dic
 ...
 ```
 
-![image](https://github.com/awakeam/dic/blob/master/images/show3.png')
+![screenshot](images/show3.png')
 
 **查询例句**
 
 `$dic -l hello`
 
-![image](https://github.com/awakeam/dic/blob/master/images/show4.png')
+![screenshot](images/show4.png')
