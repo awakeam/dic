@@ -12,7 +12,7 @@ A dictionary tools for bash shell.
 
 `$dic hello`
 
-![screenshot](https://github.com/awakeam/dic/master/images/show1.png)
+![screenshot](images/show1.png)
 
 **后接多个单词**
 
