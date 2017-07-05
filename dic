@@ -1,77 +1,90 @@
 #!/usr/bin/env python
-#-*- coding:utf-8 -*-
+#-*- coding: utf-8 -*-
 
+import sys, os, requests 
 from bs4 import BeautifulSoup
-import urllib2
-import sys, commands
 
-def main():
-    if len(sys.argv) > 1:
-        dic(sys.argv[1])
+class Dic:
+    def __init__(self, word):
+        self.word = word
+        self.bs = self.getPage()
+
+    def getPage(self):
+        try:
+            url = 'http://dict.kekenet.com/en/' + self.word
+            r = requests.get(url);
+            bs = BeautifulSoup(r.content, 'lxml')
+            return bs
+        except Exception as e:
+            print e
+
+    def phn(self):
+        try:
+            return self.bs.find('span', class_='phn').string
+        except Exception as e:
+            print e
+
+    def translate(self):
+        try:
+            wordm = self.bs.find('div', id='wordm')
+            meaning = [x.string for x in wordm.children if x.string]
+            return [m for m in meaning]
+        except Exception as e:
+            print e
+
+    def sentence(self):
+        try:
+            sentences = self.bs.find('ul', id='s_ul').find_all('div')
+            result = []
+            for div in sentences:
+                div.a.decompose()
+                div.br.replace_with('\n')
+                result.append(div.get_text())
+            return result
+        except Exception as e:
+            print e
+
+    def printTranslate(self):
+        try:
+            phn = self.phn()
+            meaning = self.translate()
+            w = int(os.popen('stty size', 'r').read().split()[1])
+            print '+' + '-'*(w-2) + '+'
+            print ' '*(w-1)+'|\r| ' + self.word + '  ' + phn
+            print '+' + '-'*(w-2) + '+'
+            for i in meaning: 
+                print ' '*(w-1)+'|\r| '+i
+            print '+' + '-'*(w-2) + '+'
+        except Exception as e:
+            print e
+
+    def printSentence(self):
+        try:
+            sentences = self.sentence()
+            w = int(os.popen('stty size', 'r').read().split()[1])
+            print '-'*w
+            for s in sentences:
+                print ' '+s
+                print '-'*w
+        except Exception as e:
+            print e
+
+
+if __name__ == '__main__':
+    l = len(sys.argv)
+    if l < 2:
+        while True:
+            dic = Dic(raw_input('>>>'))
+            dic.printTranslate()
+    elif l == 2 and sys.argv[1] == '-h':
+        print '''
+    dic [word]
+        '''
+    elif l == 3 and sys.argv[1] == '-l':
+        dic = Dic(sys.argv[2])
+        dic.printSentence()
     else:
-        while(True):
-            w = raw_input(">>>")
-            if w != 'exit':
-                dic(w)
-            else:
-                sys.exit()
-
-def dic(w):
-    url = 'http://dict.kekenet.com/en/'+w
-    req = urllib2.Request(urllib2.unquote(url), headers = {
-        'Connection': 'Keep-Alive',
-        'Accept': 'text/html, application/xhtml+xml, */*',
-        'Accept-Language': 'en-US,en;q=0.8,zh-Hans-CN;q=0.5,zh-Hans;q=0.3',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko'
-    })
-    try:
-        html = urllib2.urlopen(req)
-    except urllib2.HTTPError as e:
-        print e,'\n'
-
-    try:
-        bs = BeautifulSoup(html.read(),"lxml")
-    except AttributeError as e:
-        print e,'\n'
-
-    try:
-        phn = bs.find("span", class_="phn").get_text()
-        sentence = bs.find("ul", id="s_ul").get_text()
-        wordm = bs.find("div", id="wordm").strings
-        mean = ''
-        for l in wordm:
-            mean += l.strip() + "\n"
-
-        print mean
-
-        # cur_day = commands.getstatusoutput('date "+%Y-%m-%d"')[1]
-        # last_one = commands.getstatusoutput('ls files/newword | tail -n 1')[1]
-        # if cur_day == last_one:
-        #     f = open("files/newword/"+last_one, 'a+')
-        #     f.write(w.encode('utf-8'))
-        #     f.write("\t\t")
-        #     f.write(phn.encode('utf-8'))
-        #     f.write('\n--------------------------------\n')
-        #     # f.write("\n")
-        #     f.write(mean.encode('utf-8'))            
-        #     f.write(sentence.encode('utf-8'))            
-        #     f.write("\n\n")
-        #     f.close()
-        # else:
-        #     f = open("files/newword/"+cur_day, 'w+')
-        #     f.write(w.encode('utf-8'))
-        #     f.write("\t\t")
-        #     f.write(phn.encode('utf-8'))
-        #     f.write('\n--------------------------------\n')
-        #     # f.write("\n")
-        #     f.write(mean.encode('utf-8'))            
-        #     f.write(sentence.encode('utf-8'))            
-        #     f.write("\n\n")
-        #     f.close()
-        
-
-    except Exception as e:
-        print e,'\n'
-
-if __name__ == "__main__":
-    main()
+        words = sys.argv[1:]
+        for w in words:
+            dic = Dic(w)
+            dic.printTranslate()
