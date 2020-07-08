@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-import sys, os, requests 
+import sys, os, requests
 from bs4 import BeautifulSoup
 
 class Dic:
     def __init__(self, word):
         self.word = word
         self.bs = self.getPage()
+        self.w = int(os.popen('stty size', 'r').read().split()[1])
 
     def getPage(self):
         try:
@@ -34,12 +35,24 @@ class Dic:
 
     def sentence(self):
         try:
+            w = int(os.popen('stty size', 'r').read().split()[1])
+            t = w - 4
             sentences = self.bs.find('ul', id='s_ul').find_all('div')
             result = []
             for div in sentences:
                 div.a.decompose()
                 div.br.replace_with('\n')
-                result.append(div.get_text())
+                en = div.get_text().split('\n')[0]
+                if len(en) > t:
+                    num = len(en) / t + 1
+                    l = []
+                    i = 0
+                    while(i < num):
+                        l.append(en[i*t:(i+1)*t])
+                        i = i + 1
+                    result.append(l)
+                else:
+                    result.append(en)
             return result
         except Exception as e:
             print e
@@ -50,11 +63,36 @@ class Dic:
             meaning = self.translate()
             w = int(os.popen('stty size', 'r').read().split()[1])
             print '+' + '-'*(w-2) + '+'
-            print ' '*(w-1)+'|\r| ' + self.word + '  ' + phn
+            print ' '*(w-1)+'|\r| ' + phn
+
             print '+' + '-'*(w-2) + '+'
-            for i in meaning: 
+            for i in meaning:
                 print ' '*(w-1)+'|\r| '+i
             print '+' + '-'*(w-2) + '+'
+        except Exception as e:
+            print e
+
+    def printTranslateWithSentence(self):
+        try:
+            phn = self.phn()
+            meaning = self.translate()
+            w = int(os.popen('stty size', 'r').read().split()[1])
+            print '+' + '-'*(w-2) + '+'
+            print ' '*(w-1)+'|\r| ' + phn
+
+            print '+' + '-'*(w-2) + '+'
+            for i in meaning:
+                print ' '*(w-1)+'|\r| '+i
+
+            sentences = self.sentence()
+            print '+' + '-'*(w-2) + '+'
+            for s in sentences:
+                if isinstance(s, list):
+                    for item in s:
+                        print ' '*(w-1)+'|\r| ' + item
+                else:
+                    print ' '*(w-1)+'|\r| ' + s
+                print '+' + '-'*(w-2) + '+'
         except Exception as e:
             print e
 
@@ -62,10 +100,14 @@ class Dic:
         try:
             sentences = self.sentence()
             w = int(os.popen('stty size', 'r').read().split()[1])
-            print '-'*w
+            print '+' + '-'*(w-2) + '+'
             for s in sentences:
-                print ' '+s
-                print '-'*w
+                if isinstance(s, list):
+                    for item in s:
+                        print ' '*(w-1)+'|\r| ' + item
+                else:
+                    print ' '*(w-1)+'|\r| ' + s
+                print '+' + '-'*(w-2) + '+'
         except Exception as e:
             print e
 
@@ -74,12 +116,25 @@ if __name__ == '__main__':
     l = len(sys.argv)
     if l < 2:
         while True:
-            dic = Dic(raw_input('>>>'))
+            word = raw_input('\n>>> ')
+            if word in ['exit']:
+                sys.exit()
+            dic = Dic(word)
             dic.printTranslate()
     elif l == 2 and sys.argv[1] == '-h':
         print '''
-    dic [word]
+    dic word      --   单词释义
+    dic -l word   --   单词例句
+    dic           --   进入交互模式，仅释义
+    dic -l        --   进入交互模式，释义与例句
         '''
+    elif l == 2 and sys.argv[1] == '-l':
+        while True:
+            word = raw_input('\n>>> ')
+            if word in ['exit']:
+                sys.exit()
+            dic = Dic(word)
+            dic.printTranslateWithSentence()
     elif l == 3 and sys.argv[1] == '-l':
         dic = Dic(sys.argv[2])
         dic.printSentence()
